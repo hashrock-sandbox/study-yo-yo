@@ -1,24 +1,38 @@
-var yo = require('yo-yo')
+/// <reference path="./typings/bundle.d.ts" />
 
-var state = {
-    numbers: [
-        {name: "Test", completed: true},
-        {name: "Test", completed: false},
-        {name: "Test", completed: false}
-    ],
-    todoInput: ""
+var yo = require('yo-yo');
+
+class Todo{
+    constructor(public name: string, public completed: boolean){}
 }
 
-function itemView(item, onClickItem, clickRemove){
+class MyState{
+    numbers: Todo[] = [];
+    todoInput: string = "";
+}
+
+var state: MyState = new MyState();
+
+state.numbers.push(new Todo("Test1", true));
+state.numbers.push(new Todo("Test2", true));
+state.numbers.push(new Todo("Test3", true));
+state.numbers.push(new Todo("Test4", true));
+state.numbers.push(new Todo("Test5", false));
+
+function itemView(item: Todo, onClickItem: any, clickRemove: MouseEventHandler){
     var styles = item.completed ? "completed todoitem" : "todoitem";
     return yo`<div class=${styles} onclick=${onClickItem}>
         <div class="todoitem__label">${item.name}</div>
     <button onclick=${clickRemove}>del</button></div>`;
 }
 
-function listView(state, handlers) {
+interface MouseEventHandler{
+    (e: MouseEvent): void;
+}
+
+function listView(state: MyState, handlers: any) {
     var itemsView = state.numbers.map(function(item, idx){
-        var clickRemove = function(e){
+        var clickRemove:MouseEventHandler = function(e: MouseEvent){
             e.stopPropagation();
             handlers.onRemoveItem(idx);
         }
@@ -41,30 +55,32 @@ function listView(state, handlers) {
   `
 }
 
+interface HTMLElementEvent<T extends HTMLElement> extends Event {
+    target: T;
+}
+
 var handlers = {
-    onSubmit: function(e){
+    onSubmit: function(e: Event){
         e.preventDefault();
         if(state.todoInput.length > 0){
             handlers.onAddItem();
         }
     },
     onAddItem: function(){
-        state.numbers.push({
-            name: state.todoInput,
-            completed: false
-        })
+        var todo = new Todo(state.todoInput, false);
+        state.numbers.push(todo);
         state.todoInput = "";
         update();
     },
-    onRemoveItem: function(idx){
+    onRemoveItem: function(idx: number){
         state.numbers.splice(idx, 1);
         update();
     },
-    onTextInput: function(e){
+    onTextInput: function(e: HTMLElementEvent<HTMLInputElement>){
         state.todoInput = e.target.value;
         update();
     },
-    onCompleted: function(idx){
+    onCompleted: function(idx: number){
         state.numbers[idx].completed = !state.numbers[idx].completed;
         update();
     }
